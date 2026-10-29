@@ -472,7 +472,9 @@ function headFor(a,b){
   const invGoogle=S(gg,x=>x.cost), imprG=S(gg,x=>x.impressions);
   let gCl=S(gg,x=>x.clicks); if(!gCl)gCl=gg.reduce((s,x)=>{const c=+x.cost||0,a=+x.avg_cpc||0;return s+(a?c/a:0);},0);
   const ctrGw=imprG?gCl/imprG*100:0;  // google ctr col viene como fracción; lo derivamos de clics/impresiones
-  const isGw=S(gg,x=>x.impressions)?S(gg,x=>(parseFloat(x.search_impression_share)||0)*(parseFloat(x.impressions)||0))/imprG:0;
+  // IS ponderado sólo sobre filas que lo traen; Detrics lo manda como fracción (0–1) → se pasa a %
+  const isV=x=>{const v=parseFloat(x.search_impression_share);return v<=1?v*100:v;}, ggIS=gg.filter(x=>isFinite(parseFloat(x.search_impression_share))), imprIS=S(ggIS,x=>x.impressions);
+  const isGw=imprIS?S(ggIS,x=>isV(x)*(parseFloat(x.impressions)||0))/imprIS:0;
   // facturación atribuida por canal (desde store, por source_medium)
   const gcpc=st.filter(x=>/google\s*\/\s*cpc/i.test(x.source_medium||''));
   const factGoogle=S(gcpc,x=>x.purchase_revenue), ordGoogle=S(gcpc,x=>x.transactions);
